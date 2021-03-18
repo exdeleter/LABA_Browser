@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Zanyatie06._03
@@ -43,7 +37,7 @@ namespace Zanyatie06._03
         {
             if (kolpages > 1)
             {
-                
+
                 frame.TabPages.Remove(frame.SelectedTab);
                 kolpages--;
             } else
@@ -58,7 +52,12 @@ namespace Zanyatie06._03
             {
                 // явное преобразование типов
                 ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(AddresLine.Text);
-                AddTextInHistory();
+                using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", true))
+                {
+                    string path = AddresLine.Text;
+                    sr.WriteLine("\n" + path + " time " + DateTime.Now + "\n");
+                }
+                
             }
         }
         void browser_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
@@ -79,14 +78,28 @@ namespace Zanyatie06._03
             frame.SelectedTab.Controls.Add(browser);
             ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(@"http://startedpages.tilda.ws/");
             kolpages++;
-            
-        }
-        
-        private void GoBackInBrowser(object sender, EventArgs e) => ((WebBrowser)frame.SelectedTab.Controls[0]).GoBack(); //переход назад
-        private void GoForwardInBrowser(object sender, EventArgs e) => ((WebBrowser)frame.SelectedTab.Controls[0]).GoForward(); //переход вперед 
-        private void RefreshBrowser(object sender, EventArgs e) => ((WebBrowser)frame.SelectedTab.Controls[0]).Refresh(); //обновление
 
-        private void SaveSites(object sender, EventArgs e) // сохраняет в избранные 
+        }
+
+        private void GoBackInBrowser(object sender, EventArgs e)
+        {
+            ((WebBrowser) frame.SelectedTab.Controls[0]).GoBack(); //переход назад
+            AddTextInHistory();
+        }
+        private void GoForwardInBrowser(object sender, EventArgs e)
+        {
+            ((WebBrowser)frame.SelectedTab.Controls[0]).GoForward(); //переход вперед 
+            AddTextInHistory();
+        }
+
+        private void RefreshInBrowser(object sender, EventArgs e)
+        {
+            ((WebBrowser)frame.SelectedTab.Controls[0]).Refresh(); //обновление
+            AddTextInHistory();
+        }
+        private void StopInBrowser(object sender, EventArgs e) => ((WebBrowser)frame.SelectedTab.Controls[0]).Stop();
+
+        private void AddFavoriteSite(object sender, EventArgs e) // сохраняет в избранные 
         {
             using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\SavedSites", true))
             {
@@ -101,10 +114,14 @@ namespace Zanyatie06._03
             if(e.KeyCode == Keys.Enter)
             {
                 ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(AddresLine.Text);
-                AddTextInHistory();
+                using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", true))
+                {
+                    string path = AddresLine.Text;
+                    sr.WriteLine("\n" + path + " time " + DateTime.Now + "\n");
+                }
             }
         }
-        public void ReadFavorite()
+        private void ReadFavorite() //метод, который считывает избранные сайты
         {
             using (StreamReader sr = new StreamReader(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\SavedSites"))
             {
@@ -112,9 +129,10 @@ namespace Zanyatie06._03
                 while((p = sr.ReadLine())!= null)
                 {
                     Favoritesites.Items.Add(p);
+                    toolStripComboBox1.Items.Add(p);
                 }
             }
-        } //метод, который считывает избранные сайты
+        } 
         private void OpenTheFavoriteSite(object sender, KeyEventArgs e) // открывает выбранный избранный сайт 
         {
             ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(Favoritesites.SelectedItem.ToString());
@@ -124,46 +142,52 @@ namespace Zanyatie06._03
         {
             using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", true))
             {
-                string path = AddresLine.Text;
+                string path = ((WebBrowser)frame.SelectedTab.Controls[0]).Url.ToString();
+                //string path = AddresLine.Text;
                 sr.WriteLine("\n"+path + " time " + DateTime.Now + "\n");
             }
         }
-        private void OpenHistory(object sender, EventArgs e)
+        private void OpenHistory(object sender, EventArgs e) //открывает окно с историей
         {
             HistoryBrowser br = new HistoryBrowser();
             br.Show();
         }
 
-
-        private void DeleteFavoriteSite(object sender, EventArgs e)
+        private void DeleteFavoriteSite(object sender, EventArgs e) //удаляет избранный сайт 
         {
-            int q = Favoritesites.SelectedIndex;
-            string a  = Favoritesites.SelectedItem.ToString();
-            //string n = Favoritesites.SelectedIndex.ToString();
-            //using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\SavedSites"))
-            //{
-                
-            //}
-            Favoritesites.Items.RemoveAt(q);
+            int numofsite = Favoritesites.SelectedIndex;
+            if(numofsite!=-1)
+            {
+                string deletingsite = Favoritesites.SelectedItem.ToString();
+                string path = @"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\SavedSites";
+                File.WriteAllLines(path, File.ReadAllLines(path).Where(v => v.Trim().IndexOf(deletingsite) == -1).ToArray());
+                Favoritesites.Items.RemoveAt(numofsite);
+            } else
+            {
 
+            }
             
-            //string n = Favoritesites.SelectedIndex.ToString();
-            //string path = Favoritesites.SelectedItem.ToString();
-            //DialogResult result = MessageBox.Show("Вы уверены, что хотите удалить всю историю", "Удаление истории", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            //if (result == DialogResult.Yes)
-            //{
-            //    using (FileStream fs = new FileStream(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", FileMode.Create))
-            //    {
-            //        dataGridView1.Rows.Clear();
-            //    }
-            //}
         }
 
-        private void SavePageOnDisk(object sender, EventArgs e)
+        private void SavePageOnDisk(object sender, EventArgs e)//сохраняет на диск
         {
-
             ((WebBrowser)frame.SelectedTab.Controls[0]).ShowSaveAsDialog();
         }
 
+        private void CloseApp(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void PrintPage(object sender, EventArgs e)
+        {
+            ((WebBrowser)frame.SelectedTab.Controls[0]).ShowPrintDialog();
+        }
+
+        private void OpenNewWindow(object sender, EventArgs e)
+        {
+            Browser br = new Browser();
+            br.Show();
+        }
     }
 }
