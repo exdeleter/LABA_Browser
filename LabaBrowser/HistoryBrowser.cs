@@ -26,14 +26,16 @@ namespace Zanyatie06._03
                 string path;
                 while ((path=sr.ReadLine())!= null)
                 {
-                    int index = path.IndexOf("time"); ;
+                    int index = path.IndexOf("day"); ;
                     if(index!= -1)
                     {
-                        int i = path.IndexOf("time");
-                        string name = path.Substring(0, i);
+                        int i = path.IndexOf("$day");
+                        string day = path.Substring(0, i);
+                        int m = path.LastIndexOf("$time");
+                        string name = path.Substring(i+4,m-11);
                         i = path.LastIndexOf("time")+4;
                         string time = path.Substring(i);
-                        string[] rows = { name, time };
+                        string[] rows = { day, name, time };
                         dataGridView1.Rows.Add(rows);
                     }
                     else

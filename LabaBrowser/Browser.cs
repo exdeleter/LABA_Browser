@@ -2,6 +2,7 @@
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Zanyatie06._03
@@ -27,10 +28,12 @@ namespace Zanyatie06._03
             browser.Dock = DockStyle.Fill;
             browser.DocumentCompleted += browser_DocumentCompleted; // событие
 
-            AddresLine.Text = "";
+            
             frame.TabPages.Add("Новая вкладка");
             frame.SelectTab(kolpages);
             frame.SelectedTab.Controls.Add(browser);
+            ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(@"http://startedpages.tilda.ws/");
+            AddTextInHistory(@"http://startedpages.tilda.ws/");
             kolpages++;
         }
         public void CloseTab(object sender, EventArgs e)
@@ -52,11 +55,7 @@ namespace Zanyatie06._03
             {
                 // явное преобразование типов
                 ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(AddresLine.Text);
-                using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", true))
-                {
-                    string path = AddresLine.Text;
-                    sr.WriteLine("\n" + path + " time " + DateTime.Now + "\n");
-                }
+                AddTextInHistory(AddresLine.Text);
                 
             }
         }
@@ -77,6 +76,7 @@ namespace Zanyatie06._03
             frame.SelectTab(kolpages);
             frame.SelectedTab.Controls.Add(browser);
             ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(@"http://startedpages.tilda.ws/");
+            AddTextInHistory(@"http://startedpages.tilda.ws/");
             kolpages++;
 
         }
@@ -84,18 +84,18 @@ namespace Zanyatie06._03
         private void GoBackInBrowser(object sender, EventArgs e)
         {
             ((WebBrowser) frame.SelectedTab.Controls[0]).GoBack(); //переход назад
-            AddTextInHistory();
+            AddTextInHistory(((WebBrowser)frame.SelectedTab.Controls[0]).Url.ToString());
         }
         private void GoForwardInBrowser(object sender, EventArgs e)
         {
             ((WebBrowser)frame.SelectedTab.Controls[0]).GoForward(); //переход вперед 
-            AddTextInHistory();
+            AddTextInHistory(((WebBrowser)frame.SelectedTab.Controls[0]).Url.ToString());
         }
 
         private void RefreshInBrowser(object sender, EventArgs e)
         {
             ((WebBrowser)frame.SelectedTab.Controls[0]).Refresh(); //обновление
-            AddTextInHistory();
+            AddTextInHistory(((WebBrowser)frame.SelectedTab.Controls[0]).Url.ToString());
         }
         private void StopInBrowser(object sender, EventArgs e) => ((WebBrowser)frame.SelectedTab.Controls[0]).Stop();
 
@@ -114,11 +114,7 @@ namespace Zanyatie06._03
             if(e.KeyCode == Keys.Enter)
             {
                 ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(AddresLine.Text);
-                using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", true))
-                {
-                    string path = AddresLine.Text;
-                    sr.WriteLine("\n" + path + " time " + DateTime.Now + "\n");
-                }
+                AddTextInHistory(AddresLine.Text);
             }
         }
         private void ReadFavorite() //метод, который считывает избранные сайты
@@ -136,20 +132,20 @@ namespace Zanyatie06._03
         private void OpenTheFavoriteSite(object sender, KeyEventArgs e) // открывает выбранный избранный сайт 
         {
             ((WebBrowser)frame.SelectedTab.Controls[0]).Navigate(Favoritesites.SelectedItem.ToString());
-            AddTextInHistory();
+            AddTextInHistory(Favoritesites.SelectedItem.ToString());
         }
-        public void AddTextInHistory() //добавляет в файл история
+        public void AddTextInHistory(string path) //добавляет в файл история
         {
             using (StreamWriter sr = new StreamWriter(@"C:\Users\dewaf\source\repos\Lababrowser\Lababrowser\History", true))
             {
-                string path = ((WebBrowser)frame.SelectedTab.Controls[0]).Url.ToString();
-                //string path = AddresLine.Text;
-                sr.WriteLine("\n"+path + " time " + DateTime.Now + "\n");
+                sr.WriteLine("\n" + DateTime.Now.DayOfWeek +" $day "+ path + " $time " + DateTime.Now + "\n");
             }
+
         }
         private void OpenHistory(object sender, EventArgs e) //открывает окно с историей
         {
             HistoryBrowser br = new HistoryBrowser();
+            AddTextInHistory("History");
             br.Show();
         }
 
